@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>化學物質複習軟件</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+            position: relative;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .page {
+            display: none;
+        }
+        .active-page {
+            display: block;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        select, input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #corner-label {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            color: #888;
+            font-size: 18px;
+        }
+        .result-item {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+        .correct { color: green; }
+        .wrong { color: red; }
+        /* 多选样式 */
+        #topicSelect {
+            height: 200px;
+            width: 100%;
+            padding: 5px;
+        }
+        #topicSelect option {
+            padding: 3px;
+        }
+        .select-hint {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="corner-label">9192700225123919032714501</div>
+    
+    <div class="container">
+        <!-- 主题选择页面 -->
+        <div id="page1" class="page active-page">
+            <h1>第一步：選擇複習主題</h1>
+            <select id="topicSelect" class="form-control" multiple>
+                <option value="氯化物">氯化物</option>
+                <option value="氧化物">氧化物</option>
+                <option value="硫化物">硫化物</option>
+                <option value="酸">酸</option>
+                <option value="鹼">鹼</option>
+                <option value="硝酸鹽">硝酸鹽</option>
+                <option value="硫酸鹽">硫酸鹽</option>
+                <option value="碳酸鹽">碳酸鹽</option>
+                <option value="其他鹽">其他鹽</option>
+            </select>
+            <p class="select-hint">（按住 Ctrl 或 Command 可多选）</p>
+            <button class="button" onclick="showPage(2)">下一步 →</button>
+        </div>
+
+        <!-- 设置页面 -->
+        <div id="page2" class="page">
+            <h1>第二步：設置選擇參數</h1>
+            <button class="button" onclick="showPage(1)">← 返回</button>
+            <div>
+                <label>題目類型：</label>
+                <select id="modeSelect">
+                    <option value="化學式譯中文">化學式譯中文</option>
+                    <option value="中文譯化學式">中文譯化學式</option>
+                </select>
+            </div>
+            <div>
+                <label>題目數量：</label>
+                <input type="number" id="numInput" min="1" value="10">
+            </div>
+            <div id="selectedTopicsDisplay"></div>
+            <button class="button" onclick="startReview()">開始複習</button>
+        </div>
+
+        <!-- 答题页面 -->
+        <div id="page3" class="page">
+            <h1>答題界面</h1>
+            <div>
+                <span id="modeDisplay"></span>
+                <span id="topicDisplay"></span>
+            </div>
+            <div id="question"></div>
+            <input type="text" id="answerInput" placeholder="輸入答案">
+            <button class="button" onclick="submitAnswer()">提交答案</button>
+        </div>
+
+        <!-- 结果页面 -->
+        <div id="page4" class="page">
+            <h1>複習結果</h1>
+            <div id="stats"></div>
+            <div id="results"></div>
+            <button class="button" onclick="showPage(1)">返回主頁</button>
+        </div>
+    </div>
+
+    <script>
+        // 化学物质数据库
+        const wordsDb = {
+            氯化物: [
+                {word: "HCl", translation: "氯化氫"},
+                {word: "NaCl", translation: "氯化鈉"},
+                {word: "ZnCl2", translation: "氯化鋅"},
+                {word: "CaCl2", translation: "氯化鈣"},
+                {word: "FeCl3", translation: "氯化鐵"},
+                {word: "KCl", translation: "氯化鉀"},
+                {word: "NH4Cl", translation: "氯化銨"},
+                {word: "MgCl2", translation: "氯化鎂"},
+                {word: "CuCl2", translation: "氯化銅"},
+                {word: "AlCl3", translation: "氯化鋁"},
+                {word: "AgCl", translation: "氯化銀"},
+                {word: "CuCl", translation: "氯化亞銅"},
+                {word: "BaCl2", translation: "氯化鋇"},
+                {word: "FeCl2", translation: "氯化亞鐵"},
+                {word: "PCl5", translation: "五氯化磷"},
+            ],
+            氧化物: [
+                {word: "K2O", translation: "氧化鉀"},
+                {word: "CaO", translation: "氧化鈣"},
+                {word: "ZnO", translation: "氧化鋅"},
+                {word: "Fe2O3", translation: "氧化鐵"},
+                {word: "SiO2", translation: "二氧化硅"},
+                {word: "Na2O", translation: "氧化鈉"},
+                {word: "BaO", translation: "氧化鋇"},
+                {word: "CuO", translation: "氧化銅"},
+                {word: "FeO", translation: "氧化亞鐵"},
+                {word: "P2O5", translation: "五氧化二磷"},
+                {word: "Ag2O", translation: "氧化銀"},
+                {word: "MgO", translation: "氧化鎂"},
+                {word: "Cu2O", translation: "氧化亞銅"},
+                {word: "Al2O3", translation: "氧化鋁"},
+            ],
+            硫化物: [
+                {word: "Na2S", translation: "硫化鈉"},
+                {word: "Ag2S", translation: "硫化銀"},
+                {word: "Cu2S", translation: "硫化亞銅"},
+                {word: "K2S", translation: "硫化鉀"},
+                {word: "H2S", translation: "硫化氫"},
+                {word: "CaS", translation: "硫化鈣"},
+                {word: "BaS", translation: "硫化鋇"},
+                {word: "CuS", translation: "硫化銅"},
+                {word: "FeS", translation: "硫化亞鐵"},
+                {word: "MgS", translation: "硫化鎂"},
+                {word: "(NH4)2S", translation: "硫化銨"},
+                {word: "ZnS", translation: "硫化鋅"},
+                {word: "Al2S3", translation: "硫化鋁"},
+                {word: "Fe2S3", translation: "硫化鐵"},
+            ],
+            酸: [
+                {word: "H2SO4", translation: "硫酸"},
+                {word: "H2CO3", translation: "碳酸"},
+                {word: "H3PO4", translation: "磷酸"},
+                {word: "HCl", translation: "鹽酸"},
+                {word: "HNO3", translation: "硝酸"},
+                {word: "H2S", translation: "氫硫酸"},
+            ],
+            鹼: [
+                {word: "KOH", translation: "氫氧化鉀"},
+                {word: "CuOH", translation: "氫氧化亞銅"},
+                {word: "Ca(OH)2", translation: "氫氧化鈣"},
+                {word: "Fe(OH)2", translation: "氫氧化亞鐡"},
+                {word: "NaOH", translation: "氫氧化鈉"},
+                {word: "Cu(OH)2", translation: "氫氧化銅"},
+                {word: "Mg(OH)2", translation: "氫氧化鎂"},
+                {word: "Fe(OH)3", translation: "氫氧化鐡"},
+                {word: "Ba(OH)2", translation: "氫氧化鋇"},
+                {word: "Zn(OH)2", translation: "氫氧化鋅"},
+                {word: "Al(OH)3", translation: "氫氧化鋁"},
+            ],
+            硝酸鹽: [
+                {word: "NaO3", translation: "硝酸鈉"},
+                {word: "AgNO3", translation: "硝酸銀"},
+                {word: "NH4NO3", translation: "硝酸銨"},
+                {word: "Al(NO3)3", translation: "硝酸鋁"},
+                {word: "Ba(NO3)2", translation: "硝酸鋇"},
+                {word: "Mg(NO3)2", translation: "硝酸鎂"},
+                {word: "Fe(NO3)2", translation: "硝酸亞鐡"},
+                {word: "KNO3", translation: "硝酸鉀"},
+                {word: "Zn(NO3)2", translation: "硝酸鋅"},
+                {word: "Ca(NO3)2", translation: "硝酸鈣"},
+                {word: "Fe(NO3)3", translation: "硝酸鐡"},
+                {word: "Cu(NO3)2", translation: "硝酸銅"},
+            ],
+            硫酸鹽: [
+                {word: "CaSO4", translation: "硫酸鈣"},
+                {word: "ZnSO4", translation: "硫酸鋅"},
+                {word: "K2SO4", translation: "硫酸鉀"},
+                {word: "(NH4)2SO4", translation: "硫酸銨"},
+                {word: "BaSO4", translation: "硫酸鋇"},
+                {word: "CuSO4", translation: "硫酸銅"},
+                {word: "Ag2SO4", translation: "硫酸銀"},
+                {word: "NaSO4", translation: "硫酸鈉"},
+                {word: "Al(SO4)3", translation: "硫酸鋁"},
+                {word: "FeSO4", translation: "硫酸亞鐡"},
+                {word: "Fe2(SO4)3", translation: "硫酸鐡"},
+                {word: "MgSO4", translation: "硫酸鎂"},
+            ],
+            碳酸鹽: [
+                {word: "ZnCO3", translation: "碳酸鋅"},
+                {word: "CaCO3", translation: "碳酸鈣"},
+                {word: "CuCO3", translation: "碳酸銅"},
+                {word: "Ag2CO3", translation: "碳酸銀"},
+                {word: "Na2CO3", translation: "碳酸鈉"},
+                {word: "BaCO3", translation: "碳酸鋇"},
+                {word: "K2CO3", translation: "碳酸鉀"},
+                {word: "MgCO3", translation: "碳酸鎂"},
+                {word: "(NH4)2CO3", translation: "碳酸銨"},
+            ],
+            其他鹽: [
+                {word: "NaHCO3", translation: "碳酸氫鈉"},
+                {word: "Ba(HCO3)2", translation: "碳酸氫鈉"},
+                {word: "H2O2", translation: "過氧化氫"},
+                {word: "Ca(HCO3)2", translation: "碳酸氫鈣"},
+                {word: "Cu(HCO3)2", translation: "碳酸氫銅"},
+                {word: "KMnO4", translation: "高錳酸鉀"},
+                {word: "Al(HCO3)3", translation: "碳酸氫鋁"},
+                {word: "KClO3", translation: "氯酸鉀"},
+                {word: "K2MnO4", translation: "錳酸鉀"},
+            ], 
+        };
+
+        let currentState = {
+            topics: [],
+            mode: '化學式譯中文',
+            num: 10,
+            words: [],
+            currentIndex: 0,
+            answers: []
+        };
+
+        // 页面切换函数
+        function showPage(pageNumber) {
+            // 在切换到设置页面时显示已选主题
+            if (pageNumber === 2) {
+                const selectedOptions = Array.from(document.getElementById('topicSelect').selectedOptions)
+                                         .map(opt => opt.value);
+                
+                if (selectedOptions.length === 0) {
+                    alert('請選擇至少一個主題！');
+                    return;
+                }
+                
+                currentState.topics = selectedOptions;
+                document.getElementById('selectedTopicsDisplay').innerHTML = 
+                    `<p>已選主題：${selectedOptions.join('、')}</p>`;
+            }
+            
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active-page');
+            });
+            document.getElementById(`page${pageNumber}`).classList.add('active-page');
+        }
+
+        // 开始复习
+        function startReview() {
+            currentState.mode = document.getElementById('modeSelect').value;
+            const numInput = parseInt(document.getElementById('numInput').value);
+
+            if (isNaN(numInput) || numInput <= 0) {
+                alert('請輸入有效的題目數量！');
+                return;
+            }
+
+            // 合并所有选中主题的词汇
+            let allWords = [];
+            currentState.topics.forEach(topic => {
+                if (wordsDb[topic]) {
+                    allWords = allWords.concat(wordsDb[topic]);
+                }
+            });
+
+            if (allWords.length === 0) {
+                alert('選中的主題沒有可用詞彙！');
+                return;
+            }
+
+            currentState.num = Math.min(numInput, allWords.length);
+            currentState.words = shuffleArray(allWords).slice(0, currentState.num);
+            currentState.currentIndex = 0;
+            currentState.answers = [];
+            
+            document.getElementById('modeDisplay').textContent = `當前模式：${currentState.mode}`;
+            document.getElementById('topicDisplay').textContent = `主題：${currentState.topics.join('、')}`;
+            showPage(3);
+            showNextQuestion();
+        }
+
+        // 显示下一题
+        function showNextQuestion() {
+            if (currentState.currentIndex >= currentState.words.length) {
+                showResults();
+                return;
+            }
+
+            const currentWord = currentState.words[currentState.currentIndex];
+            const questionDiv = document.getElementById('question');
+            questionDiv.innerHTML = currentState.mode === '化學式譯中文' 
+                ? `請翻譯以下化學式：<br><strong>${currentWord.word}</strong>`
+                : `請翻譯以下中文：<br><strong>${currentWord.translation}</strong>`;
+            
+            document.getElementById('answerInput').value = '';
+            document.getElementById('answerInput').focus();
+        }
+
+        // 提交答案
+        function submitAnswer() {
+            const answer = document.getElementById('answerInput').value.trim();
+            if (!answer) {
+                alert('答案不能為空！');
+                return;
+            }
+
+            const currentWord = currentState.words[currentState.currentIndex];
+            currentState.answers.push({
+                word: currentWord.word,
+                translation: currentWord.translation,
+                userAnswer: answer,
+                correctAnswer: currentState.mode === '化學式譯中文' 
+                    ? currentWord.translation 
+                    : currentWord.word
+            });
+
+            currentState.currentIndex++;
+            showNextQuestion();
+        }
+
+        // 显示结果
+        function showResults() {
+            showPage(4);
+            const correct = currentState.answers.filter(a => 
+                a.userAnswer.toLowerCase() === a.correctAnswer.toLowerCase()
+            ).length;
+            
+            const statsHTML = `
+                <p>總題數：${currentState.answers.length}</p>
+                <p class="correct">正確：${correct}</p>
+                <p class="wrong">錯誤：${currentState.answers.length - correct}</p>
+                <p>正確率：${(correct / currentState.answers.length * 100).toFixed(1)}%</p>
+                <p>複習主題：${currentState.topics.join('、')}</p>
+            `;
+            document.getElementById('stats').innerHTML = statsHTML;
+
+            let resultsHTML = '';
+            currentState.answers.forEach((ans, index) => {
+                const isCorrect = ans.userAnswer.toLowerCase() === ans.correctAnswer.toLowerCase();
+                resultsHTML += `
+                    <div class="result-item ${isCorrect ? 'correct' : 'wrong'}">
+                        <p>題目 ${index + 1} (${currentState.mode})</p>
+                        <p>題目：${currentState.mode === '化學式譯中文' ? ans.word : ans.translation}</p>
+                        <p>你的答案：${ans.userAnswer}</p>
+                        <p>正確答案：${ans.correctAnswer}</p>
+                    </div>
+                `;
+            });
+            document.getElementById('results').innerHTML = resultsHTML;
+        }
+
+        // 实用函数
+        function shuffleArray(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        // 初始化页面
+        document.getElementById('answerInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') submitAnswer();
+        });
+    </script>
+</body>
+</html>
