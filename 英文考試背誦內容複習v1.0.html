@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px}
+        .section {margin: 20px 0; border: 1px solid #ccc; padding: 10px}
+        #footer {position: fixed; bottom: 10px; right: 10px; color: #666}
+        .hidden {display: none}
+        .red {color: red}
+        .button-container {margin-top: 20px; text-align: center}
+        .radio-group {display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0}
+        .radio-group label {display: flex; align-items: center; cursor: pointer}
+        .radio-group input[type="checkbox"] {margin-right: 5px; cursor: pointer}
+        #correctAnswer, #userResult {white-space: pre-wrap}
+    </style>
+</head>
+<body>
+    <h1>英文考試背誦內容複習</h1>
+
+    <div id="control">
+        <div class="radio-group">
+            <label><input type="checkbox" value="line"> 造句一</label>
+            <label><input type="checkbox" value="line 2"> 造句二</label>
+            <label><input type="checkbox" value="line 3"> 問答一</label>
+            <label><input type="checkbox" value="line 4"> 問答二</label>
+        </div>
+        <button onclick="startPractice()">開始練習</button>
+    </div>
+
+    <div id="practiceArea" class="hidden">
+        <textarea id="userAnswer" rows="15" cols="50"></textarea>
+        <div class="button-container">
+            <button onclick="checkAnswer()">提交答案</button>
+        </div>
+    </div>
+
+    <div id="result" class="hidden">
+        <div id="score" class="section"></div>
+        <div class="section">
+            <h3>選擇的課文</h3>
+            <div id="originalText"></div>
+        </div>
+        <div class="section">
+            <h3>你的答案</h3>
+            <div id="userResult"></div>
+        </div>
+        <div class="section">
+            <h3>正確答案</h3>
+            <div id="correctAnswer"></div>
+        </div>
+        <div class="button-container">
+            <button onclick="resetPractice()">返回</button>
+        </div>
+    </div>
+
+    <div id="footer">3472700127423347012714501</div>
+
+    <script>
+        const articles = {
+            "line 1": `He's hooked on palying online games every single day since last month.`,
+            "line 2": `She has great difficulty in understanding advanced math without extra help`,
+            "line 3": `The negative effects of gaming addiction are obesity, poor eyesight and difficutly is social interations offline.`,
+            "line 4": `I think it is possible to quit playing games for three hours in the first month, two and a half hours in the second.`,
+        };
+
+        let currentArticle = "";
+        let currentLines = [];
+
+        function startPractice() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            currentLines = Array.from(checkboxes).map(cb => cb.value);
+            
+            if (currentLines.length === 0) {
+                alert("請至少選擇一個背誦內容！");
+                return;
+            }
+            
+            currentArticle = currentLines.map(line => articles[line]).join('\n');
+            document.getElementById("control").classList.add("hidden");
+            document.getElementById("practiceArea").classList.remove("hidden");
+            document.getElementById("userAnswer").value = "";
+        }
+
+        function checkAnswer() {
+            const userInput = document.getElementById("userAnswer").value;
+            const result = compareText(userInput, currentArticle);
+            
+            document.getElementById("originalText").textContent = currentLines.join(", ");
+            document.getElementById("userResult").innerHTML = result.markedText;
+            document.getElementById("correctAnswer").textContent = currentArticle;
+            document.getElementById("score").innerHTML = `評分：${result.score}% (正確 ${result.correctCount}/${result.totalCount} 字)`;
+            
+            document.getElementById("practiceArea").classList.add("hidden");
+            document.getElementById("result").classList.remove("hidden");
+        }
+
+        function resetPractice() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            document.getElementById("control").classList.remove("hidden");
+            document.getElementById("practiceArea").classList.add("hidden");
+            document.getElementById("result").classList.add("hidden");
+        }
+
+        function compareText(user, correct) {
+            let markedText = "";
+            let correctCount = 0;
+            let totalCount = 0;
+            
+            const correctLines = correct.split('\n');
+            const userLines = user.split('\n');
+            
+            for (let lineIdx = 0; lineIdx < correctLines.length; lineIdx++) {
+                const correctLine = correctLines[lineIdx];
+                totalCount += correctLine.length;
+                
+                const userLine = lineIdx < userLines.length ? userLines[lineIdx] : "";
+                
+                for (let i = 0; i < correctLine.length; i++) {
+                    const userChar = i < userLine.length ? userLine[i] : "";
+                    if (userChar === correctLine[i]) {
+                        markedText += userChar;
+                        correctCount++;
+                    } else {
+                        markedText += `<span class="red">${userChar}</span>`;
+                    }
+                }
+                
+                // 處理用戶輸入行比正確答案行多出的字符
+                if (userLine.length > correctLine.length) {
+                    const extraChars = userLine.slice(correctLine.length);
+                    markedText += `<span class="red">${extraChars}</span>`;
+                    totalCount += extraChars.length;
+                }
+                
+                // 換行符處理
+                if (lineIdx < correctLines.length - 1) {
+                    markedText += '\n';
+                }
+            }
+            
+            // 處理用戶輸入行數多於正確答案行數的情況
+            for (let lineIdx = correctLines.length; lineIdx < userLines.length; lineIdx++) {
+                const userLine = userLines[lineIdx];
+                markedText += `<span class="red">${userLine}</span>`;
+                totalCount += userLine.length;
+                if (lineIdx < userLines.length - 1) {
+                    markedText += '\n';
+                }
+            }
+            
+            // 替換換行符為<br>
+            markedText = markedText.replace(/\n/g, "<br>");
+            
+            // 計算正確率
+            const score = totalCount === 0 ? 0 : Math.round((correctCount / totalCount) * 100);
+            
+            return {
+                markedText,
+                score,
+                correctCount,
+                totalCount
+            };
+        }
+    </script>
+</body>
+</html>
