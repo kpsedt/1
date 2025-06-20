@@ -20,10 +20,14 @@
 
     <div id="control">
         <div class="radio-group">
-            <label><input type="checkbox" value="line 1"> 造句一</label>
-            <label><input type="checkbox" value="line 2"> 造句二</label>
-            <label><input type="checkbox" value="line 3"> 問答一</label>
-            <label><input type="checkbox" value="line 4"> 問答二</label>
+            <label><input type="checkbox" value="line 1"> 舊造句一</label>
+            <label><input type="checkbox" value="line 2"> 舊造句二</label>
+            <label><input type="checkbox" value="line 3"> 舊問答一</label>
+            <label><input type="checkbox" value="line 4"> 舊問答二</label>
+            <label><input type="checkbox" value="造句一"> 造句一</label>
+            <label><input type="checkbox" value="造句二"> 造句二</label>
+            <label><input type="checkbox" value="問答一"> 問答一</label>
+            <label><input type="checkbox" value="問答二"> 問答二</label>
         </div>
         <button onclick="startPractice()">開始練習</button>
     </div>
@@ -58,10 +62,14 @@
 
     <script>
         const articles = {
-            "line 1": `He's hooked on playing online games every single day since last month.`,
-            "line 2": `She has great difficulty in understanding advanced math without extra help`,
-            "line 3": `The negative effects of gaming addiction are obesity, poor eyesight and difficulty is social interactions offline.`,
-            "line 4": `I think it is possible to quit playing games for three hours in the first month, two and a half hours in the second.`,
+            "line 1": `My voice was harsh and hesitant, I reached out and touched something soft.`,
+            "line 2": `The box was too heary to lift by myself, so I asked for help.`,
+            "line 3": `It felt frightened because it can away and hid after the narrator touched it.`,
+            "line 4": `I would trvel to the future and experience the advanced technology such as Al robots. It is because I think it is very cool.`,
+            "造句一": `He's hooked on playing online games every single day since last month.`,
+            "造句二": `She has great difficulty in understanding advanced math without extra help`,
+            "問答一": `The negative effects of gaming addiction are obesity, poor eyesight and difficulty is social interactions offline.`,
+            "問答二": `they can keep track of the time they spend on gaming. it is because if they know how much time they have spent, they may feel guilty and stop playing the game`,
         };
 
         let currentArticle = "";
