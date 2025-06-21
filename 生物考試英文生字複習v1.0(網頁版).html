@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>英文詞量複習</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+            position: relative;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .page {
+            display: none;
+        }
+        .active-page {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 15px;
+        }
+        .button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        select, input {
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        #corner-label {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            color: #888;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .result-item {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            background: #f9f9f9;
+        }
+        .correct { 
+            color: #27ae60; 
+            border-left: 4px solid #27ae60;
+        }
+        .wrong { 
+            color: #e74c3c; 
+            border-left: 4px solid #e74c3c;
+        }
+        /* 多選樣式 */
+        #topicSelect {
+            height: 250px;
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        #topicSelect option {
+            padding: 8px;
+            margin: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .select-hint {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        .setting-item {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        .setting-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        #question {
+            font-size: 24px;
+            padding: 30px;
+            text-align: center;
+            margin: 30px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        }
+        #answerInput {
+            width: 80%;
+            padding: 15px;
+            font-size: 20px;
+            text-align: center;
+            margin: 20px auto;
+            display: block;
+        }
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .stat-box {
+            padding: 20px;
+            border-radius: 8px;
+            width: 30%;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .stat-box.total { background: #3498db; }
+        .stat-box.correct-stat { background: #27ae60; }
+        .stat-box.wrong-stat { background: #e74c3c; }
+        
+        .progress-container {
+            width: 100%;
+            background: #ecf0f1;
+            border-radius: 10px;
+            margin: 25px 0;
+            height: 20px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: #3498db;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        /* 動畫效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .topic-tag {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .action-buttons {
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div id="corner-label">9192700225123919032714501</div>
+    
+    <div class="container">
+        <!-- 主題選擇頁面 -->
+        <div id="page1" class="page active-page">
+            <h1>第一步：選擇複習主題</h1>
+            <select id="topicSelect" class="form-control" multiple>
+                <option value="12.2">12.2</option>
+                <option value="12.3">12.3</option>
+                <option value="12.4">12.4</option>
+                <option value="12.5">12.5</option>
+            </select>
+            <p class="select-hint">（按住 Ctrl 或 Command 鍵可多選主題）</p>
+            <div class="action-buttons">
+                <button class="button" onclick="showPage(2)">下一步 →</button>
+            </div>
+        </div>
+
+        <!-- 設置頁面 -->
+        <div id="page2" class="page">
+            <h1>第二步：設置複習參數</h1>
+            <button class="button" onclick="showPage(1)">← 返回</button>
+            
+            <div class="setting-item">
+                <label>題目類型：</label>
+                <select id="modeSelect">
+                    <option value="英文譯中文">英文譯中文</option>
+                    <option value="中文譯英文">中文譯英文</option>
+                </select>
+            </div>
+            
+            <div class="setting-item">
+                <label>題目數量：</label>
+                <input type="number" id="numInput" min="1" value="10">
+            </div>
+            
+            <div class="setting-item">
+                <label>已選主題：</label>
+                <div id="selectedTopicsDisplay"></div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="button" onclick="startReview()">開始複習</button>
+            </div>
+        </div>
+
+        <!-- 答題頁面 -->
+        <div id="page3" class="page">
+            <h1>答題界面</h1>
+            <div>
+                <div><strong>當前模式：</strong><span id="modeDisplay"></span></div>
+                <div><strong>複習主題：</strong><span id="topicDisplay"></span></div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            
+            <div id="question"></div>
+            <input type="text" id="answerInput" placeholder="請在此輸入答案" autocomplete="off">
+            
+            <div class="action-buttons">
+                <button class="button" onclick="submitAnswer()">提交答案</button>
+            </div>
+        </div>
+
+        <!-- 結果頁面 -->
+        <div id="page4" class="page">
+            <h1>複習結果</h1>
+            
+            <div class="stats-container">
+                <div class="stat-box total">
+                    <div>總題數</div>
+                    <div id="totalCount">0</div>
+                </div>
+                <div class="stat-box correct-stat">
+                    <div>答對題數</div>
+                    <div id="correctCount">0</div>
+                </div>
+                <div class="stat-box wrong-stat">
+                    <div>答錯題數</div>
+                    <div id="wrongCount">0</div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; font-size: 20px; margin: 20px 0;">
+                正確率: <span id="accuracyRate">0</span>%
+            </div>
+            
+            <div>
+                <h3>答題詳情：</h3>
+                <div id="results"></div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="button" onclick="showPage(1)">返回主選單</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 英文生字數據庫 (全部使用繁體中文)
+        const wordsDb = {
+            "12.2": [
+                {"word": "carbohydrate", "translation": "碳水化合物"},
+                {"word": "lipid", "translation": "脂質"},
+                {"word": "protein", "translation": "蛋白質"},
+                {"word": "vitamin", "translation": "維生素"},   
+                {"word": "mineral", "translation": "礦物質"},
+                {"word": "anaemia", "translation": "貧血"},                
+                {"word": "dietary fibre", "translation": "食用纖維"},
+                {"word": "peristalsis", "translation": "蠕動"},
+            ],
+            "12.3": [
+            { "word": "digestion", "translation": "消化" },
+            { "word": "digestion system", "translation": "消化系統" },
+            { "word": "digestion canal", "translation": "消化道" },
+            { "word": "digestion gland", "translation": "消化腺" },
+            { "word": "digestion juice", "translation": "消化液" },
+            { "word": "mechanical digestion", "translation": "機械消化" },
+            { "word": "chemical digestion", "translation": "化學消化" },
+            { "word": "digestion enzyme", "translation": "消化酶" },
+            { "word": "mouth cavity", "translation": "口腔" },
+            { "word": "chewing", "translation": "咀嚼" },
+            { "word": "saliva", "translation": "唾液" },
+            { "word": "salivary glands", "translation": "唾液腺" },
+            { "word": "oesophagus", "translation": "食道" },
+            { "word": "stomach", "translation": "胃" },
+            { "word": "churning", "translation": "攪動" },
+            { "word": "gastric juice", "translation": "胃液" },
+            { "word": "small intestine", "translation": "小腸" },
+            { "word": "bile", "translation": "膽汁" },
+            { "word": "pancreatic juice", "translation": "胰液" },
+            { "word": "intestinal juice", "translation": "腸液" },
+            { "word": "liver", "translation": "肝臟" },
+            { "word": "gall bladder", "translation": "膽囊" },
+            { "word": "pancreas", "translation": "胰臟" },
+            { "word": "absorption", "translation": "吸收" },
+            { "word": "large intestine", "translation": "大腸" },
+            { "word": "anus", "translation": "肛門" }
+            ],
+            "12.4": [
+                {"word": "balanced diet", "translation": "均衡飲食"},
+                {"word": "food pyramid", "translation": "食物金字塔"},
+            ],
+            "12.5": [
+                {"word": "infectious disease", "translation": "傳染病"},
+                {"word": "non-infectious disease", "translation": "非傳染病"},
+                {"word": "microorganism", "translation": "微生物"},
+                {"word": "pathogen", "translation": "病原體"},
+                {"word": "virus", "translation": "病毒"},
+                {"word": "bacterium", "translation": "細菌"},
+                {"word": "fungus", "translation": "真菌"},
+                {"word": "vaccination", "translation": "接種疫苗"},
+            ],
+        };
+
+        let currentState = {
+            topics: [],
+            mode: '英文譯中文',
+            num: 10,
+            words: [],
+            currentIndex: 0,
+            answers: []
+        };
+
+        // 頁面切換函數
+        function showPage(pageNumber) {
+            // 在切換到設置頁面時顯示已選主題
+            if (pageNumber === 2) {
+                const selectedOptions = Array.from(document.getElementById('topicSelect').selectedOptions)
+                                         .map(opt => opt.value);
+                
+                if (selectedOptions.length === 0) {
+                    alert('請選擇至少一個主題！');
+                    return;
+                }
+                
+                currentState.topics = selectedOptions;
+                const topicsHTML = selectedOptions.map(topic => 
+                    `<span class="topic-tag">${topic}</span>`
+                ).join('');
+                document.getElementById('selectedTopicsDisplay').innerHTML = topicsHTML;
+            }
+            
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active-page');
+            });
+            document.getElementById(`page${pageNumber}`).classList.add('active-page');
+        }
+
+        // 開始複習
+        function startReview() {
+            currentState.mode = document.getElementById('modeSelect').value;
+            const numInput = parseInt(document.getElementById('numInput').value);
+
+            if (isNaN(numInput) || numInput <= 0) {
+                alert('請輸入有效的題目數量！');
+                return;
+            }
+
+            // 合併所有選中主題的詞彙
+            let allWords = [];
+            currentState.topics.forEach(topic => {
+                if (wordsDb[topic]) {
+                    allWords = allWords.concat(wordsDb[topic]);
+                }
+            });
+
+            if (allWords.length === 0) {
+                alert('選中的主題沒有可用詞彙！');
+                return;
+            }
+
+            currentState.num = Math.min(numInput, allWords.length);
+            currentState.words = shuffleArray(allWords).slice(0, currentState.num);
+            currentState.currentIndex = 0;
+            currentState.answers = [];
+            
+            document.getElementById('modeDisplay').textContent = currentState.mode;
+            document.getElementById('topicDisplay').innerHTML = currentState.topics.map(t => 
+                `<span class="topic-tag">${t}</span>`
+            ).join(' ');
+            
+            showPage(3);
+            showNextQuestion();
+        }
+
+        // 顯示下一題
+        function showNextQuestion() {
+            if (currentState.currentIndex >= currentState.words.length) {
+                showResults();
+                return;
+            }
+
+            // 更新進度條
+            const progress = ((currentState.currentIndex) / currentState.words.length * 100).toFixed(0);
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            
+            const currentWord = currentState.words[currentState.currentIndex];
+            const questionDiv = document.getElementById('question');
+            questionDiv.innerHTML = currentState.mode === '英文譯中文' 
+                ? `請翻譯以下英文：<br><strong>${currentWord.word}</strong>`
+                : `請翻譯以下中文：<br><strong>${currentWord.translation}</strong>`;
+            
+            document.getElementById('answerInput').value = '';
+            document.getElementById('answerInput').focus();
+        }
+
+        // 提交答案
+        function submitAnswer() {
+            const answer = document.getElementById('answerInput').value.trim();
+            if (!answer) {
+                alert('答案不能為空！');
+                return;
+            }
+
+            const currentWord = currentState.words[currentState.currentIndex];
+            currentState.answers.push({
+                word: currentWord.word,
+                translation: currentWord.translation,
+                userAnswer: answer,
+                correctAnswer: currentState.mode === '英文譯中文' 
+                    ? currentWord.translation 
+                    : currentWord.word
+            });
+
+            currentState.currentIndex++;
+            showNextQuestion();
+        }
+
+        // 顯示結果
+        function showResults() {
+            showPage(4);
+            const total = currentState.answers.length;
+            const correct = currentState.answers.filter(a => 
+                a.userAnswer.toLowerCase() === a.correctAnswer.toLowerCase()
+            ).length;
+            const wrong = total - correct;
+            const accuracy = total > 0 ? (correct / total * 100).toFixed(1) : 0;
+            
+            // 更新統計數據
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('correctCount').textContent = correct;
+            document.getElementById('wrongCount').textContent = wrong;
+            document.getElementById('accuracyRate').textContent = accuracy;
+            
+            // 顯示詳細結果
+            let resultsHTML = '';
+            currentState.answers.forEach((ans, index) => {
+                const isCorrect = ans.userAnswer.toLowerCase() === ans.correctAnswer.toLowerCase();
+                const question = currentState.mode === '英文譯中文' ? ans.word : ans.translation;
+                
+                resultsHTML += `
+                    <div class="result-item ${isCorrect ? 'correct' : 'wrong'}">
+                        <p><strong>題目 ${index + 1}:</strong> ${question}</p>
+                        <p>你的答案: ${ans.userAnswer}</p>
+                        <p>正確答案: ${ans.correctAnswer}</p>
+                    </div>
+                `;
+            });
+            document.getElementById('results').innerHTML = resultsHTML;
+        }
+
+        // 實用函數
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // 初始化頁面
+        document.getElementById('answerInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') submitAnswer();
+        });
+    </script>
+</body>
+</html>
